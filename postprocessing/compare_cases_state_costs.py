@@ -1025,6 +1025,8 @@ if args.subregion is not None:
         'values':'Net Import (TWh)',
         'label':'Net Import (TWh)'
     }
+# Only plot cap and gen starting in 2025 
+plot_start_year = 2025
 plotwidth = 3.0
 figwidth = plotwidth * len(cases)
 dfbase = {}
@@ -1035,8 +1037,12 @@ for slidetitle, data in toplot.items():
         2, len(cases), figsize=(figwidth, 6.8),
         sharex=True, sharey=sharey, dpi=None,
     )
-    ax[0,0].set_ylabel(data['label'], y=-0.075)
-    ax[0,0].set_xlim(2017.5, lastyear+2.5)
+    if slidetitle =='Capacity' or slidetitle =='Generation':
+        ax[0,0].set_ylabel(data['label'], y=-0.075)
+        ax[0,0].set_xlim(plot_start_year-2.5, lastyear+2.5)
+    else:
+        ax[0,0].set_ylabel(data['label'], y=-0.075)
+        ax[0,0].set_xlim(2017.5, lastyear+2.5)
     ax[1,0].annotate(
         f'Diff\nfrom\n{basecase}', (0.03,0.03), xycoords='axes fraction',
         fontsize='x-large', weight='bold')
@@ -1046,6 +1052,8 @@ for slidetitle, data in toplot.items():
         if case not in data['data']:
             continue
         dfplot = data['data'][case].pivot(index='year', columns=data['columns'], values=data['values'])
+        if slidetitle =='Capacity' or slidetitle =='Generation':
+            dfplot = dfplot[dfplot.index >= plot_start_year]
         if data['columns'] != 'cost_cat':
             dfplot = (
                 dfplot[[c for c in data['colors'] if c in dfplot]]
@@ -1068,8 +1076,12 @@ for slidetitle, data in toplot.items():
         ax[0,col].set_title(
             (case if nowrap else plots.wraptext(case, width=plotwidth*0.9, fontsize=14)),
             fontsize=14, weight='bold', x=0, ha='left', pad=8,)
-        ax[0,col].xaxis.set_major_locator(mpl.ticker.MultipleLocator(10))
-        ax[0,col].xaxis.set_minor_locator(mpl.ticker.MultipleLocator(5))
+        if slidetitle =='Capacity' or slidetitle =='Generation': 
+            ax[0,col].xaxis.set_major_locator(mpl.ticker.MultipleLocator(5))
+            ax[0,col].xaxis.set_minor_locator(mpl.ticker.MultipleLocator(1))
+        else:   
+            ax[0,col].xaxis.set_major_locator(mpl.ticker.MultipleLocator(10))
+            ax[0,col].xaxis.set_minor_locator(mpl.ticker.MultipleLocator(5))
 
     ### Legend
     if data['columns'] == 'cost_cat':
@@ -1099,12 +1111,20 @@ for slidetitle, data in toplot.items():
 
     ###### Difference
     for col, case in enumerate(cases):
-        ax[1,col].xaxis.set_major_locator(mpl.ticker.MultipleLocator(10))
-        ax[1,col].xaxis.set_minor_locator(mpl.ticker.MultipleLocator(5))
+        if slidetitle =='Capacity' or slidetitle =='Generation': 
+            ax[0,col].xaxis.set_major_locator(mpl.ticker.MultipleLocator(5))
+            ax[0,col].xaxis.set_minor_locator(mpl.ticker.MultipleLocator(1))
+        else:   
+            ax[0,col].xaxis.set_major_locator(mpl.ticker.MultipleLocator(10))
+            ax[0,col].xaxis.set_minor_locator(mpl.ticker.MultipleLocator(5))
+        # ax[1,col].xaxis.set_major_locator(mpl.ticker.MultipleLocator(10))
+        # ax[1,col].xaxis.set_minor_locator(mpl.ticker.MultipleLocator(5))
         ax[1,col].axhline(0,c='k',ls='--',lw=0.75)
         if (case not in data['data']) or (case == basecase):
             continue
         dfplot = data['data'][case].pivot(index='year', columns=data['columns'], values=data['values'])
+        if slidetitle =='Capacity' or slidetitle =='Generation':
+            dfplot = dfplot[dfplot.index >= plot_start_year]
         if data['columns'] != 'cost_cat':
             dfplot = (
                 dfplot
@@ -1545,7 +1565,8 @@ for col, (datum, data) in enumerate(toplot.items()):
     )
 
     handles[datum] = plot_bars_abs_stacked(
-        dfplot=dfplot, basecase=basemap,
+        dfplot=dfplot.fillna(0), 
+        basecase=basemap,
         colors=techcolors, fontsize=8,
         ax=ax, col=col, net=(True if datum == 'Generation' else False),
         label=(False if lesslabels else True),
