@@ -931,6 +931,7 @@ if float(sw.get('GSw_LoadSiteCF', 0)):
             vscale=1e-3,
             vmin=0,
             title='Sited demand [GW]',
+            filter_st = True
         )
         savename = f'map_loadsite-{year}.png'
         if write:
@@ -981,6 +982,7 @@ if float(sw.GSw_LoadSiteCF) > 0:
         vscale=1e-3,
         vmin=0,
         title='Sited demand [GW]',
+        filter_st = True
     )
     ## Save it
     savename = f'Flexibly sited demand-{year}.png'
@@ -989,5 +991,4 @@ if float(sw.GSw_LoadSiteCF) > 0:
     if interactive:
         plt.show()
     print(savename)
-
 
