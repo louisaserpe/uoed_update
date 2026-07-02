@@ -1341,9 +1341,10 @@ def write_batch_script(
     shutil.copy2(os.path.join(reeds_path, cases_filename), casedir)
 
     ### Switches with values derived from other switches
-    caseSwitches['GSw_itlgrpConstraint'] = int(
-        caseSwitches['GSw_RegionResolution'] in ['county', 'mixed']
-    )
+    # caseSwitches['GSw_itlgrpConstraint'] = int(
+    #     caseSwitches['GSw_RegionResolution'] in ['county', 'mixed']
+    # )
+    caseSwitches['GSw_itlgrpConstraint'] = '0'
     caseSwitches['GSw_OffshoreFiles'] = (
         'meshed' if int(caseSwitches['GSw_OffshoreZones']) else 'radial'
     )
