@@ -117,6 +117,7 @@ def main(reeds_path, inputs_case):
     #%% Inputs from switches
     sw = reeds.io.get_switches(inputs_case)
     GSw_EFS1_AllYearLoad = sw.GSw_EFS1_AllYearLoad
+    GSw_LoadAdjust_WashingtonCounty = float(sw.GSw_LoadAdjust_WashingtonCounty)
     GSw_CSP_Types = [int(i) for i in sw.GSw_CSP_Types.split('_')]
     GSw_PVB_Types = sw.GSw_PVB_Types
     GSw_PVB = int(sw.GSw_PVB)
@@ -297,6 +298,12 @@ def main(reeds_path, inputs_case):
             load_multiplier.merge(r2ba, on=[load_multiplier_agglevel], how='outer')
             .dropna(axis=0, how='any')
         )
+        # Adjust loa multiplier in Washington county 
+        if GSw_LoadAdjust_WashingtonCounty != 0.0 :
+            adjust_years = [x for x in solveyears if x >= 2026]
+            for year in adjust_years:
+                load_multiplier.loc[(load_multiplier['r'] == 'p49053') & 
+                                    (load_multiplier['year'] == year), 'multiplier'] = (1 + GSw_LoadAdjust_WashingtonCounty)**(year-2026)
         # Subset load multipliers for solve years only 
         load_multiplier = load_multiplier[load_multiplier['year'].isin(solveyears)
                                           ][['year', 'r', 'multiplier']]
